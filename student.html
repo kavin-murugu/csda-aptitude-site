@@ -1,0 +1,40 @@
+<h2>Daily Aptitude</h2>
+<select id="daySelect" onchange="loadDay()">
+  <option>Day 1</option>
+  <option>Day 2</option>
+</select>
+
+<div id="video"></div>
+<div id="quizBox"></div>
+<textarea id="answer" placeholder="Write your answer here"></textarea>
+<button onclick="submit()">Submit</button>
+
+<script>
+function loadDay() {
+  const selectedDay = document.getElementById("daySelect").value;
+  firebase.firestore().collection("content")
+    .where("day", "==", selectedDay)
+    .get().then(snapshot => {
+      if (!snapshot.empty) {
+        const data = snapshot.docs[0].data();
+        document.getElementById("video").innerHTML =
+          `<iframe width="300" height="200" src="${data.video}" frameborder="0" allowfullscreen></iframe>`;
+        document.getElementById("quizBox").innerText = data.quiz;
+      }
+    });
+}
+
+function submit() {
+  const selectedDay = document.getElementById("daySelect").value;
+  const answer = document.getElementById("answer").value;
+  const user = firebase.auth().currentUser;
+  firebase.firestore().collection("responses").add({
+    email: user.email,
+    day: selectedDay,
+    answer: answer,
+    timestamp: new Date()
+  }).then(() => {
+    window.location.href = "success.html";
+  });
+}
+</script>
